@@ -4,16 +4,18 @@ class GeminiAPI {
     const worldLore = game.settings.get('nsc-dialogue-generator-ki', 'worldLore');
     
     if (!apiKey) {
-      ui.notifications.error("NSC Dialogue Generator: Kein API-Key hinterlegt!");
+      ui.notifications.error("API-Key fehlt in den Einstellungen!");
       return null;
     }
 
-    const systemInstruction = `Du bist ein erfahrener Dungeon Master. Handle als NSC in D&D 5e.
-      STIL: High Fantasy Realismus, atmosphärisch dicht, keine moderne Umgangssprache.
+    // Wir nutzen hier npcData.details, was wir in der dialog-app.js aus der Biografie ziehen
+    const systemInstruction = `Du bist ein NSC in einem D&D 5e Spiel.
+      STIL: High Fantasy Realismus.
       WELT-LORE: ${worldLore}
-      NSC-PROFIL: Name: ${npcData.name}, Bio: ${npcData.bio}, Aktuelle Bedingungen: ${npcData.conditions}.
-      GEGENÜBER: ${playerData.name} (Werte: Charisma ${playerData.system.abilities.cha.value}).
-      REGEL: Antworte prägnant (max. 4 Sätze). Wenn der Spieler versucht zu lügen oder zu drohen, füge am Ende [WURF] hinzu.`;
+      DEIN PROFIL: Name: ${npcData.name}. 
+      HINTERGRUND/PERSÖNLICHKEIT: ${npcData.bio}
+      GEGENÜBER: ${playerData.name}.
+      ANWEISUNG: Antworte kurz und immersiv (max 3-4 Sätze).`;
 
     const body = {
       contents: [
@@ -32,8 +34,7 @@ class GeminiAPI {
       const data = await response.json();
       return data.candidates[0].content.parts[0].text;
     } catch (e) {
-      console.error("Gemini API Error:", e);
-      return "Der NSC scheint kurzzeitig in Gedanken verloren...";
+      return "Der NSC schweigt und starrt ins Leere.";
     }
   }
 }

@@ -1,38 +1,4 @@
-class GeminiDialogApp extends Application {
-  constructor(player, npc) {
-    super();
-    this.player = player;
-    this.npc = npc;
-    this.history = [];
-    this.isThinking = false;
-  }
-
-  static get defaultOptions() {
-    return mergeObject(super.defaultOptions, {
-      id: "nsc-dialogue-ui",
-      template: "modules/nsc-dialogue-generator-ki/templates/dialog.html",
-      title: "KI-Dialog",
-      width: 450,
-      height: 600,
-      resizable: true
-    });
-  }
-
-  getData() {
-    return {
-      playerName: this.player.name,
-      npcName: this.npc.name,
-      history: this.history,
-      isThinking: this.isThinking
-    };
-  }
-
-  activateListeners(html) {
-    html.find('#send-btn').click(() => this._process());
-    html.find('#chat-input').keypress(ev => { if (ev.which === 13) this._process(); });
-  }
-
-  async _process() {
+async _process() {
     if (this.isThinking) return;
     const input = this.element.find('#chat-input');
     const text = input.val();
@@ -43,10 +9,10 @@ class GeminiDialogApp extends Application {
     this.isThinking = true;
     this.render(true);
 
+    // Hier ziehen wir die Biografie direkt aus dem Standard-Feld
     const npcData = {
       name: this.npc.name,
-      bio: this.npc.system.details?.biography?.value || "",
-      conditions: this.npc.getFlag('nsc-dialogue-generator-ki', 'conditions') || "Neutral"
+      bio: this.npc.system.details?.biography?.value || "Ein einfacher NSC ohne besondere Merkmale."
     };
 
     const response = await GeminiAPI.generateResponse(npcData, this.player, this.history.slice(0, -1), text);
@@ -60,7 +26,4 @@ class GeminiDialogApp extends Application {
       });
     }
     this.render(true);
-  }
 }
-
-Handlebars.registerHelper('eq', (a, b) => a === b);

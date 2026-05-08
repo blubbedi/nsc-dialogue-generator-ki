@@ -6,10 +6,8 @@ class GeminiAPI {
             return null;
         }
 
-        // 1. MODELL-FIX: Wir nehmen "gemini-2.0-flash" (steht sicher in deiner Liste!)
-        const modelId = "gemini-2.0-flash"; 
-        
-        // 2. SICHERHEITS-FIX: Keine "?key=" Parameter mehr in der URL!
+        // Wir nutzen "gemini-flash-latest" - das universellste Modell aus deiner Liste
+        const modelId = "gemini-flash-latest"; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
 
         const prompt = `Du bist ein NSC in einem D&D 5e Spiel. 
@@ -25,7 +23,7 @@ class GeminiAPI {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
-                    "x-goog-api-key": apiKey // HIER ist der Key nun unsichtbar versteckt
+                    "x-goog-api-key": apiKey 
                 },
                 body: JSON.stringify({
                     contents: [
@@ -43,7 +41,13 @@ class GeminiAPI {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Gemini API Fehler:", errorData.error?.message || "Fehler bei der Anfrage.");
-                ui.notifications.error(`KI Fehler: ${errorData.error?.message || "Anfrage fehlgeschlagen"}`);
+                
+                // Wir fangen das Limit-Problem ab und geben dir einen klaren Hinweis im Spiel
+                if (errorData.error?.message?.includes("Quota exceeded")) {
+                    ui.notifications.error("KI-Limit ist auf 0. Bitte Abrechnung im Google AI Studio aktivieren.");
+                } else {
+                    ui.notifications.error(`KI Fehler: ${errorData.error?.message}`);
+                }
                 return null;
             }
 
@@ -56,8 +60,7 @@ class GeminiAPI {
             return "Der NSC murmelt etwas Unverständliches...";
 
         } catch (e) {
-            // Selbst bei einem kompletten Absturz wird nichts Sensibles mehr geloggt
-            console.error("Netzwerkfehler: Die Verbindung zur Google API konnte nicht hergestellt werden.");
+            console.error("Netzwerkfehler zur Google API.");
             ui.notifications.error("Netzwerkfehler zur Google API.");
             return null;
         }

@@ -6,7 +6,6 @@ class GeminiAPI {
             return null;
         }
 
-        // Wir nutzen "gemini-flash-latest" - das universellste Modell aus deiner Liste
         const modelId = "gemini-flash-latest"; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
 
@@ -32,8 +31,7 @@ class GeminiAPI {
                         { role: "user", parts: [{ text: message }] }
                     ],
                     generationConfig: {
-                        temperature: 0.8,
-                        maxOutputTokens: 300
+                        temperature: 0.8
                     }
                 })
             });
@@ -42,7 +40,6 @@ class GeminiAPI {
                 const errorData = await response.json();
                 console.error("Gemini API Fehler:", errorData.error?.message || "Fehler bei der Anfrage.");
                 
-                // Wir fangen das Limit-Problem ab und geben dir einen klaren Hinweis im Spiel
                 if (errorData.error?.message?.includes("Quota exceeded")) {
                     ui.notifications.error("KI-Limit ist auf 0. Bitte Abrechnung im Google AI Studio aktivieren.");
                 } else {

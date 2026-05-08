@@ -10,7 +10,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
     if (notes) {
         notes.tools.push({
             name: "gemini-dialog",
-            title: "KI Dialog",
+            title: "KI Dialog starten",
             icon: "fas fa-brain",
             onClick: () => new GeminiStarterApp().render(true),
             button: true
@@ -40,6 +40,8 @@ class GeminiStarterApp extends Application {
             if (pId && nId) {
                 new GeminiDialogApp(game.actors.get(pId), game.actors.get(nId)).render(true);
                 this.close();
+            } else {
+                ui.notifications.warn("Bitte wähle einen Spieler und einen NSC aus.");
             }
         });
     }

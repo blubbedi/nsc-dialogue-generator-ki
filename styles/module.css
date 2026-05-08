@@ -1,21 +1,26 @@
-#nsc-dialogue-ui .window-content {
-  background: url("../../../ui/parchment.jpg") repeat;
-  color: #2c1e11;
-  font-family: "Signika", sans-serif;
-}
-
 #gemini-history {
-  height: 400px;
-  overflow-y: auto;
-  border: 1px solid #5c4033;
-  padding: 10px;
-  margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+    padding: 10px;
 }
-
-.message { margin-bottom: 8px; border-bottom: 1px dotted rgba(0,0,0,0.1); }
-.message.user { text-align: right; color: #1a237e; }
-.message.model { text-align: left; color: #4a0e0e; }
-
-.thinking { font-style: italic; color: #555; animation: geminiPulse 1.5s infinite; }
-@keyframes geminiPulse { 0% {opacity: 0.3;} 50% {opacity: 1;} 100% {opacity: 0.3;} }
+.msg.user { 
+    color: #1a237e; 
+    border-right: 3px solid #1a237e; 
+    padding-right: 5px; 
+    text-align: right; 
+}
+.msg.model { 
+    color: #4a0e0e; 
+    border-left: 3px solid #4a0e0e; 
+    padding-left: 5px; 
+    text-align: left; 
+}
+.msg p {
+    white-space: pre-wrap;
+    margin: 5px 0 0 0;
+}
+.thinking { 
+    font-style: italic; 
+    color: #777; 
+    margin-top: 10px; 
+}

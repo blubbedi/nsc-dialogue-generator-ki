@@ -2,18 +2,21 @@ class GeminiAPI {
     static async generateResponse(npcData, playerData, history, message) {
         const apiKey = game.settings.get('nsc-dialogue-generator-ki', 'apiKey');
         if (!apiKey) {
-            ui.notifications.error("Kein API-Key gefunden!");
+            ui.notifications.error("Kein API-Key in den Einstellungen gefunden.");
             return null;
         }
 
-        // Wir nutzen den stabilen Pro-Endpunkt
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+        // Wir nutzen den absolut sichersten Modell-Pfad
+        // 'gemini-1.5-flash' ist oft stabiler erreichbar als 'pro' für neue Keys
+        const model = "gemini-1.5-flash"; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-        const prompt = `Handle als NSC in D&D 5e. Stil: High Fantasy Realismus.
+        const prompt = `Du bist ein NSC in D&D 5e. Stil: High Fantasy Realismus.
             WELT: ${game.settings.get('nsc-dialogue-generator-ki', 'worldLore')}
-            DEIN PROFIL: ${npcData.name}. Hintergrund: ${npcData.bio}
-            SPIELER: ${playerData.name}.
-            ANWEISUNG: Antworte kurz (max. 3 Sätze). Sei immersiv.`;
+            DEIN NAME: ${npcData.name}. 
+            DEIN HINTERGRUND: ${npcData.bio}
+            GEGENÜBER: ${playerData.name}.
+            ANWEISUNG: Antworte kurz und immersiv in maximal 3 Sätzen.`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -24,29 +27,36 @@ class GeminiAPI {
                         { role: "user", parts: [{ text: prompt }] },
                         ...history,
                         { role: "user", parts: [{ text: message }] }
-                    ]
+                    ],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 200,
+                    }
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Gemini API Error Detail:", errorData);
-                ui.notifications.error(`API Fehler: ${response.status} - Schau in die Konsole.`);
-                return "Der NSC scheint gerade nicht sprechen zu wollen...";
+                const errorText = await response.text();
+                console.error("Gemini API Error Detail:", errorText);
+                
+                // Wenn 404, versuchen wir es intern mit einem Hinweis
+                if (response.status === 404) {
+                    ui.notifications.error("API Fehler 404: Modell nicht gefunden. Prüfe Modellnamen oder Region.");
+                } else {
+                    ui.notifications.error(`API Fehler ${response.status}: Details in der Konsole.`);
+                }
+                return null;
             }
 
             const data = await response.json();
-
-            // Sicherheitscheck, ob die Antwort wirklich Text enthält
-            if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
                 return data.candidates[0].content.parts[0].text;
-            } else {
-                console.warn("Unerwartete API-Antwort-Struktur:", data);
-                return "Der NSC murmelt etwas Unverständliches...";
             }
+            
+            return "Der NSC murmelt etwas Unverständliches...";
         } catch (e) {
-            console.error("Netzwerkfehler zur Gemini API:", e);
-            return "Eine magische Störung verhindert das Gespräch.";
+            console.error("Netzwerkfehler:", e);
+            return "Eine magische Barriere stört die Verbindung...";
         }
     }
 }

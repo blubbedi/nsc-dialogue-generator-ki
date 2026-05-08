@@ -3,16 +3,16 @@ class GeminiAPI {
         const apiKey = game.settings.get('nsc-dialogue-generator-ki', 'apiKey');
         if (!apiKey) return null;
 
-        // Der stabilste Endpunkt laut aktueller Dokumentation
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // Stabiler v1 Pfad für Pro-Nutzer
+        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
 
         const prompt = `Du bist ein NSC in einem D&D 5e Spiel. 
             Stil: High Fantasy Realismus. 
             Welt-Lore: ${game.settings.get('nsc-dialogue-generator-ki', 'worldLore')}
             Dein Name: ${npcData.name}. 
-            Dein Hintergrund: ${npcData.bio}
+            Hintergrund: ${npcData.bio}
             Dein Gegenüber: ${playerData.name}.
-            Anweisung: Antworte in max. 3 Sätzen, bleib in deiner Rolle.`;
+            Anweisung: Antworte kurz (max. 3 Sätze) und bleib in deiner Rolle.`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -23,7 +23,11 @@ class GeminiAPI {
                         { role: "user", parts: [{ text: prompt }] },
                         ...history,
                         { role: "user", parts: [{ text: message }] }
-                    ]
+                    ],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 250
+                    }
                 })
             });
 
@@ -31,19 +35,14 @@ class GeminiAPI {
 
             if (!response.ok) {
                 console.error("Gemini API Error:", data);
-                // Spezifische Meldung für den User
-                if (data.error?.status === "PERMISSION_DENIED") {
-                    ui.notifications.error("API Key ungültig oder Region nicht unterstützt.");
-                } else {
-                    ui.notifications.error(`KI Fehler: ${data.error?.message || "Unbekannter Fehler"}`);
-                }
+                ui.notifications.error(`KI Fehler: ${data.error?.message || "Unbekannter Fehler"}`);
                 return null;
             }
 
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            console.error("Netzwerkfehler zur Google API:", e);
-            return null;
+            console.error("Netzwerkfehler:", e);
+            return "Der NSC scheint in Gedanken versunken...";
         }
     }
 }

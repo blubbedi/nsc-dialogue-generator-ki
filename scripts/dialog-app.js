@@ -9,7 +9,7 @@ class GeminiDialogApp extends Application {
 
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
-            id: "gemini-chat-window",
+            id: "gemini-chat-app",
             template: "modules/nsc-dialogue-generator-ki/templates/dialog.html",
             title: `Gespräch mit ${this.npc?.name || "NSC"}`,
             width: 450,
@@ -19,20 +19,15 @@ class GeminiDialogApp extends Application {
     }
 
     getData() {
-        return { 
-            history: this.history, 
-            playerName: this.player.name, 
-            npcName: this.npc.name, 
-            isThinking: this.isThinking 
-        };
+        return { history: this.history, playerName: this.player.name, npcName: this.npc.name, isThinking: this.isThinking };
     }
 
     activateListeners(html) {
-        html.find('#send-btn').click(() => this._processChat(html));
-        html.find('#chat-input').keypress(e => { if (e.which === 13) this._processChat(html); });
+        html.find('#send-btn').click(() => this._onSend(html));
+        html.find('#chat-input').keypress(e => { if (e.which === 13) this._onSend(html); });
     }
 
-    async _processChat(html) {
+    async _onSend(html) {
         if (this.isThinking) return;
         const input = html.find('#chat-input');
         const text = input.val();
@@ -45,18 +40,15 @@ class GeminiDialogApp extends Application {
 
         const npcData = {
             name: this.npc.name,
-            bio: this.npc.system.details?.biography?.value || "Ein NSC."
+            bio: this.npc.system.details?.biography?.value || "Ein NSC ohne Hintergrund."
         };
 
         const response = await GeminiAPI.generateResponse(npcData, this.player, this.history.slice(0, -1), text);
-        
         this.isThinking = false;
+        
         if (response) {
             this.history.push({ role: "model", parts: [{ text: response }] });
-            ChatMessage.create({ 
-                speaker: ChatMessage.getSpeaker({ actor: this.npc }), 
-                content: response 
-            });
+            ChatMessage.create({ speaker: { alias: this.npc.name }, content: response });
         }
         this.render(true);
     }

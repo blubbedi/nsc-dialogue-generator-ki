@@ -3,8 +3,9 @@ class GeminiAPI {
         const apiKey = game.settings.get('nsc-dialogue-generator-ki', 'apiKey');
         if (!apiKey) return null;
 
-        // Stabiler v1 Pfad für Pro-Nutzer
-        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+        // Wir nutzen eines der Modelle aus DEINER Liste:
+        const modelId = "gemini-3.1-pro-preview"; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
         const prompt = `Du bist ein NSC in einem D&D 5e Spiel. 
             Stil: High Fantasy Realismus. 
@@ -12,7 +13,7 @@ class GeminiAPI {
             Dein Name: ${npcData.name}. 
             Hintergrund: ${npcData.bio}
             Dein Gegenüber: ${playerData.name}.
-            Anweisung: Antworte kurz (max. 3 Sätze) und bleib in deiner Rolle.`;
+            Anweisung: Antworte immersiv in max. 3 Sätzen.`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -25,8 +26,8 @@ class GeminiAPI {
                         { role: "user", parts: [{ text: message }] }
                     ],
                     generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 250
+                        temperature: 0.8,
+                        maxOutputTokens: 300
                     }
                 })
             });
@@ -39,10 +40,14 @@ class GeminiAPI {
                 return null;
             }
 
-            return data.candidates[0].content.parts[0].text;
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                return data.candidates[0].content.parts[0].text;
+            }
+            
+            return "Der NSC murmelt etwas Unverständliches...";
         } catch (e) {
             console.error("Netzwerkfehler:", e);
-            return "Der NSC scheint in Gedanken versunken...";
+            return "Die Verbindung zur Astralebene schwankt...";
         }
     }
 }

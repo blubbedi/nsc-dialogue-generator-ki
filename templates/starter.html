@@ -1,0 +1,11 @@
+<div class="gemini-starter">
+    <div class="form-group">
+        <label>Spieler:</label>
+        <select id="p-select">{{#each players}}<option value="{{id}}">{{name}}</option>{{/each}}</select>
+    </div>
+    <div class="form-group">
+        <label>NSC (aus Ordner 'Dialog-Nsc'):</label>
+        <select id="n-select">{{#each npcs}}<option value="{{id}}">{{name}}</option>{{/each}}</select>
+    </div>
+    <button id="start-btn" style="margin-top:10px">Dialog starten</button>
+</div>

@@ -6,21 +6,24 @@ Hooks.once('ready', async () => {
 
 Hooks.on('getSceneControlButtons', (controls) => {
     if (!game.user.isGM) return;
-    controls.find(c => c.name === "notes").tools.push({
-        name: "gemini-dialog",
-        title: "KI Dialog starten",
-        icon: "fas fa-brain",
-        onClick: () => new GeminiStarterApp().render(true),
-        button: true
-    });
+    const notes = controls.find(c => c.name === "notes");
+    if (notes) {
+        notes.tools.push({
+            name: "gemini-dialog",
+            title: "KI Dialog",
+            icon: "fas fa-brain",
+            onClick: () => new GeminiStarterApp().render(true),
+            button: true
+        });
+    }
 });
 
 class GeminiStarterApp extends Application {
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
             template: "modules/nsc-dialogue-generator-ki/templates/starter.html",
-            title: "KI Dialog Setup",
-            width: 300
+            title: "KI Dialog Auswahl",
+            width: 320
         });
     }
 
@@ -32,15 +35,13 @@ class GeminiStarterApp extends Application {
 
     activateListeners(html) {
         html.find('#start-btn').click(() => {
-            const p = game.actors.get(html.find('#p-select').val());
-            const n = game.actors.get(html.find('#n-select').val());
-            if (p && n) {
-                new GeminiDialogApp(p, n).render(true);
+            const pId = html.find('#p-select').val();
+            const nId = html.find('#n-select').val();
+            if (pId && nId) {
+                new GeminiDialogApp(game.actors.get(pId), game.actors.get(nId)).render(true);
                 this.close();
-            } else {
-                ui.notifications.warn("Wähle einen NSC und einen Spieler!");
             }
         });
     }
 }
-window.GeminiStarterApp = GeminiStarterApp; // Global machen
+window.GeminiStarterApp = GeminiStarterApp;

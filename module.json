@@ -2,7 +2,7 @@
   "id": "nsc-dialogue-generator-ki",
   "title": "NSC Dialogue Generator KI",
   "description": "KI-gestützte, immersive NSC-Dialoge für D&D 5e unter Verwendung von Google Gemini.",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "author": "blubbedi",
   "minimumCoreVersion": "12",
   "compatibleCoreVersion": "12",

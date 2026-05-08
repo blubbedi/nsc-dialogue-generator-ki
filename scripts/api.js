@@ -6,9 +6,11 @@ class GeminiAPI {
             return null;
         }
 
-        // Wir nutzen das stabile Flash-Modell aus deiner Liste
-        const modelId = "gemini-1.5-flash-latest"; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+        // 1. MODELL-FIX: Wir nehmen "gemini-2.0-flash" (steht sicher in deiner Liste!)
+        const modelId = "gemini-2.0-flash"; 
+        
+        // 2. SICHERHEITS-FIX: Keine "?key=" Parameter mehr in der URL!
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
 
         const prompt = `Du bist ein NSC in einem D&D 5e Spiel. 
             Stil: High Fantasy Realismus. 
@@ -21,7 +23,10 @@ class GeminiAPI {
         try {
             const response = await fetch(apiUrl, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": apiKey // HIER ist der Key nun unsichtbar versteckt
+                },
                 body: JSON.stringify({
                     contents: [
                         { role: "user", parts: [{ text: prompt }] },
@@ -35,11 +40,9 @@ class GeminiAPI {
                 })
             });
 
-            // Sicherheits-Check: Wir verarbeiten die Antwort, ohne die URL zu loggen
             if (!response.ok) {
                 const errorData = await response.json();
-                // Wir loggen NUR die Nachricht der API, niemals die URL (die den Key enthält)
-                console.error("Gemini API Fehler:", errorData.error?.message || "Quota überschritten oder Modellfehler.");
+                console.error("Gemini API Fehler:", errorData.error?.message || "Fehler bei der Anfrage.");
                 ui.notifications.error(`KI Fehler: ${errorData.error?.message || "Anfrage fehlgeschlagen"}`);
                 return null;
             }
@@ -53,8 +56,7 @@ class GeminiAPI {
             return "Der NSC murmelt etwas Unverständliches...";
 
         } catch (e) {
-            // WICHTIG: Wir fangen Netzwerkfehler ab, ohne das Error-Objekt zu loggen, 
-            // da dieses bei fetch-Fehlern oft die URL inkl. Key enthält.
+            // Selbst bei einem kompletten Absturz wird nichts Sensibles mehr geloggt
             console.error("Netzwerkfehler: Die Verbindung zur Google API konnte nicht hergestellt werden.");
             ui.notifications.error("Netzwerkfehler zur Google API.");
             return null;

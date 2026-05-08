@@ -1,0 +1,28 @@
+name: Release Creation
+
+on:
+  push:
+    tags:
+      - 'v*' # Löst aus, wenn du einen Tag wie v1.0.0 pushst
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Zip
+        run: |
+          # Packt alle Dateien außer dem .git Ordner und dem .github Ordner
+          zip -r ./nsc-dialogue-generator-ki.zip . -x "*.git*" ".github/*"
+
+      - name: Update Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            module.json
+            nsc-dialogue-generator-ki.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

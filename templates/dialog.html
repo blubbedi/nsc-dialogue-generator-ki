@@ -1,15 +1,15 @@
-<div class="gemini-chat-container">
-    <div id="gemini-history">
+<div class="gemini-chat">
+    <div id="gemini-history" style="height:400px; overflow-y:auto; border:1px solid #5c4033; padding:10px; margin-bottom:10px; background: rgba(255,255,255,0.2);">
         {{#each history}}
-            <div class="message {{role}}">
+            <div class="msg {{role}}" style="margin-bottom:10px;">
                 <strong>{{#if (eq role "user")}}{{../playerName}}{{else}}{{../npcName}}{{/if}}:</strong>
                 <p>{{parts.[0].text}}</p>
             </div>
         {{/each}}
-        {{#if isThinking}}<div class="thinking">{{npcName}} überlegt...</div>{{/if}}
+        {{#if isThinking}}<div class="thinking italic">Denkt nach...</div>{{/if}}
     </div>
-    <div class="input-area" style="display:flex; gap:5px;">
-        <input type="text" id="chat-input" placeholder="Sprecht mit dem NSC..." style="flex:1">
-        <button id="send-btn" style="width:40px"><i class="fas fa-paper-plane"></i></button>
+    <div style="display:flex; gap:5px;">
+        <input type="text" id="chat-input" placeholder="Sprecht..." style="flex:1">
+        <button id="send-btn" style="width:40px;"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>

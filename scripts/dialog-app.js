@@ -1,8 +1,8 @@
 class GeminiDialogApp extends Application {
-    constructor(player, npc) {
+    constructor(player, npcData) {
         super();
         this.player = player;
-        this.npc = npc;
+        this.npc = npcData; // Dies ist jetzt unser sauberes Daten-Paket
         this.history = [];
         this.isThinking = false;
     }
@@ -11,11 +11,15 @@ class GeminiDialogApp extends Application {
         return mergeObject(super.defaultOptions, {
             id: "gemini-chat-window",
             template: "modules/nsc-dialogue-generator-ki/templates/dialog.html",
-            title: `Gespräch mit ${this.npc?.name || "NSC"}`,
             width: 450,
             height: 600,
             resizable: true
         });
+    }
+
+    // Offizielle Foundry-Methode für dynamische Fenstertitel
+    get title() {
+        return `Gespräch mit ${this.npc.name}`;
     }
 
     getData() {
@@ -51,13 +55,12 @@ class GeminiDialogApp extends Application {
         this.render(true);
         this._scrollToBottom(); 
 
-        const npcData = {
+        const apiNpcData = {
             name: this.npc.name,
-            bio: this.npc.system.details?.biography?.value || "Ein ganz normaler Bewohner dieser Welt."
+            bio: this.npc.bio
         };
 
-        // History wird jetzt komplett sauber übergeben
-        const response = await GeminiAPI.generateResponse(npcData, this.player, this.history);
+        const response = await GeminiAPI.generateResponse(apiNpcData, this.player, this.history);
         
         this.isThinking = false;
         if (response) {

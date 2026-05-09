@@ -1,3 +1,20 @@
+Hooks.once('init', () => {
+    // Socket Listener sofort registrieren, damit kein Signal verloren geht
+    game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
+        if (data.action === "openDialog" && data.userId === game.user.id) {
+            const playerActor = game.actors.get(data.playerId);
+            
+            if (playerActor) {
+                // Wir übergeben jetzt data.npc (die reinen Texte/Bilder) statt dem echten Foundry-Actor
+                new GeminiDialogApp(playerActor, data.npc).render(true);
+                ui.notifications.info(`Dialog mit ${data.npc.name} gestartet!`);
+            } else {
+                ui.notifications.error("Dein Charakter konnte nicht geladen werden.");
+            }
+        }
+    });
+});
+
 Hooks.once('ready', async () => {
     if (game.user.isGM) {
         if (!game.folders.find(f => f.name === "Dialog-Nsc" && f.type === "Actor")) {
@@ -7,20 +24,6 @@ Hooks.once('ready', async () => {
             await Folder.create({ name: "Gespräche", type: "JournalEntry" });
         }
     }
-
-    game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
-        if (data.action === "openDialog" && data.userId === game.user.id) {
-            const playerActor = game.actors.get(data.playerId);
-            const npcActor = game.actors.get(data.npcId);
-            
-            if (playerActor && npcActor) {
-                new GeminiDialogApp(playerActor, npcActor).render(true);
-                ui.notifications.info(`Der Spielleiter hat einen Dialog mit ${npcActor.name} gestartet!`);
-            } else {
-                ui.notifications.error("Charakter-Daten konnten nicht geladen werden. Fehlen die Berechtigungen für den NSC?");
-            }
-        }
-    });
 });
 
 Hooks.on('getSceneControlButtons', (controls) => {
@@ -75,17 +78,27 @@ class GeminiStarterApp extends Application {
             
             if (pSelect && nId) {
                 const [userId, actorId] = pSelect.split('|');
+                const playerActor = game.actors.get(actorId);
+                const npcActor = game.actors.get(nId);
+                
+                // Wir schnüren das Paket, damit der Spieler keine Berechtigungen braucht
+                const npcDataPayload = {
+                    id: npcActor.id,
+                    name: npcActor.name,
+                    img: npcActor.img,
+                    bio: npcActor.system.details?.biography?.value || "Ein Bewohner dieser Welt."
+                };
                 
                 if (userId === game.user.id) {
-                    new GeminiDialogApp(game.actors.get(actorId), game.actors.get(nId)).render(true);
+                    new GeminiDialogApp(playerActor, npcDataPayload).render(true);
                 } else {
                     game.socket.emit("module.nsc-dialogue-generator-ki", {
                         action: "openDialog",
                         userId: userId,
                         playerId: actorId,
-                        npcId: nId
+                        npc: npcDataPayload // Hier fliegt das Paket zum Spieler
                     });
-                    ui.notifications.info("Dialog-Fenster wurde auf den Bildschirm des Spielers gesendet.");
+                    ui.notifications.info("Dialog-Fenster wurde erfolgreich an den Spieler gesendet.");
                 }
                 this.close();
             } else {

@@ -48,7 +48,6 @@ class GeminiAPI {
                     "x-goog-api-key": apiKey 
                 },
                 body: JSON.stringify({
-                    // Die saubere Methode für System-Prompts!
                     systemInstruction: {
                         parts: [{ text: systemPrompt }]
                     },
@@ -75,7 +74,6 @@ class GeminiAPI {
             const candidate = data.candidates?.[0];
             
             if (candidate) {
-                // Sicherheits-Check, falls Gemini blockiert
                 if (candidate.finishReason === 'SAFETY') {
                     ui.notifications.warn("Die KI hat die Antwort aus Sicherheitsgründen blockiert.");
                     return "*(Der NSC schweigt abrupt und wendet sich ab...)*";

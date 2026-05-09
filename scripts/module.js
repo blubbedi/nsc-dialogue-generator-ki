@@ -1,5 +1,36 @@
+Hooks.once('init', () => {
+    // 1. Das Funkgerät wird sofort beim Start registriert
+    console.log("KI-MODUL | Initialisiere Funkgerät...");
+    
+    game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
+        console.log("KI-MODUL | Signal aus dem Äther empfangen:", data);
+        
+        // Prüfen, ob der Befehl für DIESEN speziellen Spieler ist
+        if (data.action === "openDialog" && data.userId === game.user.id) {
+            console.log("KI-MODUL | Signal ist für MICH bestimmt!");
+            
+            const playerActor = game.actors.get(data.playerId);
+            if (!playerActor) {
+                console.error("KI-MODUL | Fehler: Charakter-Datenblatt nicht gefunden. ID:", data.playerId);
+                ui.notifications.error("KI Dialog: Dein Charakter-Datenblatt wurde nicht gefunden.");
+                return;
+            }
+
+            console.log("KI-MODUL | Öffne Fenster für:", playerActor.name, "mit", data.npc.name);
+            try {
+                // Das Dialog-Fenster aufbauen und anzeigen
+                const app = new GeminiDialogApp(playerActor, data.npc);
+                app.render(true);
+                ui.notifications.info(`Der Spielleiter hat einen Dialog mit ${data.npc.name} gestartet!`);
+            } catch (err) {
+                console.error("KI-MODUL | Kritischer Fehler beim Rendern des Dialogs:", err);
+            }
+        }
+    });
+});
+
 Hooks.once('ready', async () => {
-    // 1. Ordner-Erstellung (nur für GM)
+    // 2. Ordner-Erstellung (nur für GM)
     if (game.user.isGM) {
         if (!game.folders.find(f => f.name === "Dialog-Nsc" && f.type === "Actor")) {
             await Folder.create({ name: "Dialog-Nsc", type: "Actor" });
@@ -8,24 +39,10 @@ Hooks.once('ready', async () => {
             await Folder.create({ name: "Gespräche", type: "JournalEntry" });
         }
     }
-
-    // 2. Das Funkgerät (jetzt sicher im ready-Hook, feuert wenn alles geladen ist)
-    game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
-        console.log("KI Dialog Modul: Signal empfangen", data);
-        if (data.action === "openDialog" && data.userId === game.user.id) {
-            const playerActor = game.actors.get(data.playerId);
-            
-            if (playerActor) {
-                new GeminiDialogApp(playerActor, data.npc).render(true);
-                ui.notifications.info(`Dialog mit ${data.npc.name} gestartet!`);
-            } else {
-                ui.notifications.error("Dein Charakter konnte nicht geladen werden.");
-            }
-        }
-    });
 });
 
 Hooks.on('getSceneControlButtons', (controls) => {
+    // 3. GM-Button
     if (!game.user.isGM) return; 
     
     const notes = controls.find(c => c.name === "notes");
@@ -42,7 +59,6 @@ Hooks.on('getSceneControlButtons', (controls) => {
 
 class GeminiStarterApp extends Application {
     static get defaultOptions() {
-        // V12 FIX: foundry.utils.mergeObject
         return foundry.utils.mergeObject(super.defaultOptions, {
             template: "modules/nsc-dialogue-generator-ki/templates/starter.html",
             title: "KI Dialog Zuweisung",
@@ -81,23 +97,34 @@ class GeminiStarterApp extends Application {
                 const playerActor = game.actors.get(actorId);
                 const npcActor = game.actors.get(nId);
                 
+                // Wir erzwingen reine Text-Strings (Desinfektion für den Socket)
+                let cleanBio = "Ein Bewohner dieser Welt.";
+                if (npcActor.system && npcActor.system.details && npcActor.system.details.biography) {
+                    cleanBio = String(npcActor.system.details.biography.value);
+                }
+
                 const npcDataPayload = {
-                    id: npcActor.id,
-                    name: npcActor.name,
-                    img: npcActor.img,
-                    bio: npcActor.system.details?.biography?.value || "Ein Bewohner dieser Welt."
+                    id: String(npcActor.id),
+                    name: String(npcActor.name),
+                    img: String(npcActor.img || "icons/svg/mystery-man.svg"),
+                    bio: cleanBio
                 };
                 
                 if (userId === game.user.id) {
+                    console.log("KI-MODUL | Öffne lokal für GM...");
                     new GeminiDialogApp(playerActor, npcDataPayload).render(true);
                 } else {
-                    game.socket.emit("module.nsc-dialogue-generator-ki", {
+                    const payload = {
                         action: "openDialog",
-                        userId: userId,
-                        playerId: actorId,
+                        userId: String(userId),
+                        playerId: String(actorId),
                         npc: npcDataPayload 
-                    });
-                    ui.notifications.info("Dialog-Fenster wurde erfolgreich an den Spieler gesendet.");
+                    };
+                    
+                    console.log("KI-MODUL | Feuere Socket ab:", payload);
+                    game.socket.emit("module.nsc-dialogue-generator-ki", payload);
+                    
+                    ui.notifications.info("Dialog-Signal an Spieler gefeuert (prüfe Konsole).");
                 }
                 this.close();
             } else {

@@ -5,12 +5,12 @@ Hooks.once('init', () => {
         scope: "world",
         config: true,
         type: String,
-        default: "" // ACHTUNG: Kein password:true, sonst stürzt Foundry beim Spieler ab!
+        default: "" 
     });
 
     game.settings.register('nsc-dialogue-generator-ki', 'loreJournalName', {
         name: "Name des Lore-Tagebuchs",
-        hint: "Der exakte Name des Journal Entries (Tagebuchs) in Foundry, in dem du die Kampagnen-Lore speicherst. Die KI liest dieses Tagebuch vor jedem Dialog aus.",
+        hint: "Der exakte Name des Journal Entries (Tagebuchs).",
         scope: "world",
         config: true,
         type: String,

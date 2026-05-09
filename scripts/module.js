@@ -1,20 +1,31 @@
-Hooks.once('init', () => {
-    // Socket sicher initialisieren
+console.log("KI-MODUL | Skript geladen.");
+
+Hooks.once('ready', async () => {
+    console.log("KI-MODUL | Foundry 'ready'. Mache Funkgerät empfangsbereit...");
+
+    // Das Funkgerät für den Empfang (Spieler & GM)
     game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
-        console.log("KI-MODUL | Socket Signal empfangen:", data);
-        if (data.action === "openDialog" && data.userId === game.user.id) {
-            const playerActor = game.actors.get(data.playerId);
-            if (playerActor) {
-                new GeminiDialogApp(playerActor, data.npc).render(true);
-                ui.notifications.info(`Dialog mit ${data.npc.name} gestartet!`);
+        console.log("KI-MODUL | >> SIGNAL EMPFANGEN <<", data);
+        
+        if (data.action === "openDialog") {
+            if (data.userId === game.user.id) {
+                console.log("KI-MODUL | Signal ist für mich bestimmt! Suche Charakter...");
+                const playerActor = game.actors.get(data.playerId);
+                
+                if (playerActor && data.npc) {
+                    console.log("KI-MODUL | Alles gefunden. Öffne Dialogfenster!");
+                    new GeminiDialogApp(playerActor, data.npc).render(true);
+                    ui.notifications.info(`Der Spielleiter hat einen Dialog mit ${data.npc.name} gestartet!`);
+                } else {
+                    console.error("KI-MODUL | Fehler: Charakter- oder NSC-Daten fehlen.", {player: playerActor, npc: data.npc});
+                    ui.notifications.error("Charakter konnte nicht geladen werden.");
+                }
             } else {
-                ui.notifications.error("Spieler-Charakter nicht gefunden.");
+                console.log(`KI-MODUL | Signal ignoriert. (Geht an: ${data.userId}, Ich bin: ${game.user.id})`);
             }
         }
     });
-});
 
-Hooks.once('ready', async () => {
     if (game.user.isGM) {
         if (!game.folders.find(f => f.name === "Dialog-Nsc" && f.type === "Actor")) {
             await Folder.create({ name: "Dialog-Nsc", type: "Actor" });
@@ -27,7 +38,6 @@ Hooks.once('ready', async () => {
 
 Hooks.on('getSceneControlButtons', (controls) => {
     if (!game.user.isGM) return; 
-    
     const notes = controls.find(c => c.name === "notes");
     if (notes) {
         notes.tools.push({
@@ -82,28 +92,31 @@ class GeminiStarterApp extends Application {
             const playerActor = game.actors.get(actorId);
             const npcActor = game.actors.get(nId);
 
-            if (!playerActor || !npcActor) {
-                ui.notifications.error("Akteur nicht gefunden.");
-                return;
-            }
+            if (!playerActor || !npcActor) return;
+
+            // FIX: Biografie extrem aggressiv säubern, damit das Netzwerk nicht blockiert
+            const rawBio = npcActor.system?.details?.biography?.value || "";
+            const cleanBio = String(rawBio).replace(/<[^>]*>?/gm, '').trim() || "Ein Bewohner.";
 
             const payload = {
                 id: String(npcActor.id),
                 name: String(npcActor.name),
                 img: String(npcActor.img || "icons/svg/mystery-man.svg"),
-                bio: String(npcActor.system?.details?.biography?.value || "Ein Bewohner.")
+                bio: cleanBio
             };
 
             if (userId === game.user.id) {
+                console.log("KI-MODUL | Öffne lokal für GM.");
                 new GeminiDialogApp(playerActor, payload).render(true);
             } else {
+                console.log("KI-MODUL | Feuere Socket an Spieler:", userId);
                 game.socket.emit("module.nsc-dialogue-generator-ki", {
                     action: "openDialog",
                     userId: userId,
                     playerId: actorId,
                     npc: payload
                 });
-                ui.notifications.info("Dialog an den Spieler gesendet.");
+                ui.notifications.info("Dialog an den Spieler gesendet. (Konsole prüfen!)");
             }
             this.close();
         });

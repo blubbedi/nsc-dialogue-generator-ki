@@ -15,46 +15,31 @@ class GeminiAPI {
         let dynamicLore = "Keine zusätzliche Lore gefunden.";
         
         if (journal && journal.pages) {
-            // Auslesen der Seiten kompatibel mit V10/V11/V12
             let pagesArray = [];
             if (journal.pages.contents) pagesArray = journal.pages.contents;
             else if (Array.isArray(journal.pages)) pagesArray = journal.pages;
             else pagesArray = Array.from(journal.pages);
 
-            dynamicLore = pagesArray
-                .map(page => page.text?.content || "")
-                .join("\n")
-                .replace(/<[^>]*>?/gm, '')
-                .trim();
+            dynamicLore = pagesArray.map(page => page.text?.content || "").join("\n").replace(/<[^>]*>?/gm, '').trim();
         }
 
         const systemPrompt = `Du bist ${npcData.name} in einem D&D 5e Rollenspiel (High Fantasy Realismus).
-            
             BIO: ${npcData.bio}
-            
             LORE: ${dynamicLore}
-            
             REGELN:
             1. FREMDER: Das Gegenüber heißt zwar ${playerData.name}, aber du weißt das nicht zwingend. Sprich ihn wie einen Fremden an.
             2. KEIN LORE-DUMPING: Behalte das Weltwissen für dich. Sprich nur darüber, wenn du gefragt wirst.
             3. SPIEL DEINEN STATUS: Reagiere authentisch gemäß deiner Biografie.
-            
             Antworte in der Ich-Perspektive und in maximal 3 Sätzen.`;
 
         try {
             const response = await fetch(apiUrl, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }]
-                    },
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
                     contents: history,
-                    generationConfig: {
-                        temperature: 0.8
-                    }
+                    generationConfig: { temperature: 0.8 }
                 })
             });
 
@@ -66,12 +51,7 @@ class GeminiAPI {
             }
 
             const data = await response.json();
-            
-            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
-            }
-            
-            return "*(Der NSC schweigt...)*";
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "*(Der NSC schweigt...)*";
 
         } catch (e) {
             console.error("Netzwerkfehler zur Google API:", e);

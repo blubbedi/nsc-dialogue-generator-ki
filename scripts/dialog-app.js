@@ -17,9 +17,7 @@ class GeminiDialogApp extends Application {
         });
     }
 
-    get title() {
-        return `Gespräch mit ${this.npc.name}`;
-    }
+    get title() { return `Gespräch mit ${this.npc.name}`; }
 
     getData() {
         return { 
@@ -45,10 +43,7 @@ class GeminiDialogApp extends Application {
         input.val("");
 
         this.history.push({ role: "user", parts: [{ text: text }] });
-        ChatMessage.create({ 
-            speaker: { alias: this.player.name, actor: this.player.id },
-            content: text 
-        });
+        ChatMessage.create({ speaker: { alias: this.player.name, actor: this.player.id }, content: text });
 
         this.isThinking = true;
         this.render(true);
@@ -59,10 +54,7 @@ class GeminiDialogApp extends Application {
         this.isThinking = false;
         if (response) {
             this.history.push({ role: "model", parts: [{ text: response }] });
-            ChatMessage.create({ 
-                speaker: { alias: this.npc.name }, 
-                content: response 
-            });
+            ChatMessage.create({ speaker: { alias: this.npc.name }, content: response });
         }
         this.render(true);
         this._scrollToBottom(); 
@@ -111,16 +103,11 @@ class GeminiDialogApp extends Application {
                     type: "text",
                     text: { format: 1, content: content }
                 }],
-                ownership: {
-                    default: 0,
-                    [game.user.id]: 3 
-                }
+                ownership: { default: 0, [game.user.id]: 3 }
             });
-
             ui.notifications.info("Gespräch gespeichert!");
         } catch (e) {
             console.error("Fehler beim Speichern des KI-Dialogs:", e);
-            ui.notifications.warn("Konnte Gespräch nicht speichern.");
         }
     }
 }

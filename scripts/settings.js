@@ -9,12 +9,12 @@ Hooks.once('init', () => {
         password: true
     });
 
-    game.settings.register('nsc-dialogue-generator-ki', 'worldLore', {
-        name: "Welt-Lore",
-        hint: "Informationen, die alle NSC kennen (z.B. Setting-Details).",
+    game.settings.register('nsc-dialogue-generator-ki', 'loreJournalName', {
+        name: "Name des Lore-Tagebuchs",
+        hint: "Der exakte Name des Journal Entries (Tagebuchs) in Foundry, in dem du die Kampagnen-Lore speicherst. Die KI liest dieses Tagebuch vor jedem Dialog aus.",
         scope: "world",
         config: true,
         type: String,
-        default: "High Fantasy Realismus. Das Schwert ist eines der drei Artefakte (Teile von Ishkandrael)."
+        default: "KI Lore"
     });
 });

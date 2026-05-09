@@ -1,31 +1,18 @@
 <div class="gemini-chat" style="display:flex; flex-direction:column; height:100%;">
-    <div id="gemini-history" style="flex:1; overflow-y:auto; padding:10px; margin-bottom:10px; border-radius: 5px;">
+    <div id="gemini-history">
         {{#each history}}
             <div class="msg-wrapper {{role}}">
-                {{#if (eq role "user")}}
-                    <div class="msg-content user">
-                        <strong>{{../playerName}}</strong>
-                        <p>{{parts.[0].text}}</p>
-                    </div>
-                    <img src="{{../playerImg}}" class="chat-avatar" title="{{../playerName}}">
-                {{else}}
-                    <img src="{{../npcImg}}" class="chat-avatar" title="{{../npcName}}">
-                    <div class="msg-content model">
-                        <strong>{{../npcName}}</strong>
-                        <p>{{parts.[0].text}}</p>
-                    </div>
-                {{/if}}
+                <img src="{{#if (eq role 'user')}}{{../playerImg}}{{else}}{{../npcImg}}{{/if}}" class="chat-avatar">
+                <div class="msg-content">
+                    <strong>{{#if (eq role 'user')}}{{../playerName}}{{else}}{{../npcName}}{{/if}}</strong>
+                    <p>{{parts.[0].text}}</p>
+                </div>
             </div>
         {{/each}}
-        {{#if isThinking}}
-            <div class="msg-wrapper model thinking-wrapper">
-                <img src="{{npcImg}}" class="chat-avatar" title="{{npcName}}">
-                <div class="thinking msg-content model">... denkt nach ...</div>
-            </div>
-        {{/if}}
+        {{#if isThinking}}<div class="msg-wrapper model"><i>Denkt nach...</i></div>{{/if}}
     </div>
-    <div style="display:flex; gap:5px;">
-        <input type="text" id="chat-input" placeholder="Sprecht..." style="flex:1">
-        <button id="send-btn" style="width:40px;"><i class="fas fa-paper-plane"></i></button>
+    <div style="display:flex; margin-top:10px; gap:5px;">
+        <input type="text" id="chat-input" style="flex:1">
+        <button id="send-btn" style="width:50px;"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>

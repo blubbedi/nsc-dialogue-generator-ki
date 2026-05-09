@@ -19,13 +19,12 @@ class GeminiDialogApp extends Application {
     }
 
     getData() {
-        // Wir übergeben jetzt zusätzlich die Profilbilder (img) an das HTML
         return { 
             history: this.history, 
             playerName: this.player.name, 
-            playerImg: this.player.img, 
+            playerImg: this.player.img || "icons/svg/mystery-man.svg", 
             npcName: this.npc.name, 
-            npcImg: this.npc.img, 
+            npcImg: this.npc.img || "icons/svg/mystery-man.svg", 
             isThinking: this.isThinking 
         };
     }
@@ -44,34 +43,34 @@ class GeminiDialogApp extends Application {
 
         this.history.push({ role: "user", parts: [{ text: text }] });
         ChatMessage.create({ 
-            speaker: ChatMessage.getSpeaker({ actor: this.player }), 
+            speaker: { alias: this.player.name, actor: this.player.id },
             content: text 
         });
 
         this.isThinking = true;
         this.render(true);
-        this._scrollToBottom(); // Scrollt runter nach deiner Eingabe
+        this._scrollToBottom(); 
 
         const npcData = {
             name: this.npc.name,
             bio: this.npc.system.details?.biography?.value || "Ein ganz normaler Bewohner dieser Welt."
         };
 
-        const response = await GeminiAPI.generateResponse(npcData, this.player, this.history.slice(0, -1), text);
+        // History wird jetzt komplett sauber übergeben
+        const response = await GeminiAPI.generateResponse(npcData, this.player, this.history);
         
         this.isThinking = false;
         if (response) {
             this.history.push({ role: "model", parts: [{ text: response }] });
             ChatMessage.create({ 
-                speaker: ChatMessage.getSpeaker({ actor: this.npc }), 
+                speaker: { alias: this.npc.name, actor: this.npc.id }, 
                 content: response 
             });
         }
         this.render(true);
-        this._scrollToBottom(); // Scrollt runter nach der KI-Antwort
+        this._scrollToBottom(); 
     }
 
-    // Hilfsfunktion: Scrollt das Fenster automatisch nach ganz unten
     _scrollToBottom() {
         setTimeout(() => {
             if (this.element && this.element.length) {
@@ -79,10 +78,53 @@ class GeminiDialogApp extends Application {
                 if (historyContainer) {
                     historyContainer.scrollTop = historyContainer.scrollHeight;
                 }
-                // Hält den Fokus im Eingabefeld, damit du direkt weitertippen kannst
                 this.element.find('#chat-input').focus();
             }
         }, 50);
+    }
+
+    async close(options) {
+        if (this.history.length > 0) {
+            await this._saveConversationToJournal();
+        }
+        return super.close(options);
+    }
+
+    async _saveConversationToJournal() {
+        try {
+            let content = `<h2>Gespräch zwischen ${this.player.name} und ${this.npc.name}</h2><hr>`;
+            this.history.forEach(entry => {
+                const speakerName = entry.role === 'user' ? this.player.name : this.npc.name;
+                const text = entry.parts[0].text;
+                content += `<p><strong>${speakerName}:</strong> ${text}</p>`;
+            });
+
+            const folder = game.folders.find(f => f.name === "Gespräche" && f.type === "JournalEntry");
+            const folderId = folder ? folder.id : null;
+
+            const dateStr = new Date().toLocaleDateString('de-DE');
+            const timeStr = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+            const journalTitle = `Gespräch mit ${this.npc.name} (${dateStr} ${timeStr})`;
+
+            await JournalEntry.create({
+                name: journalTitle,
+                folder: folderId,
+                pages: [{
+                    name: "Verlauf",
+                    type: "text",
+                    text: { format: 1, content: content }
+                }],
+                ownership: {
+                    default: 0,
+                    [game.user.id]: 3 
+                }
+            });
+
+            ui.notifications.info("Gespräch wurde in deinen Tagebüchern unter 'Gespräche' gespeichert!");
+        } catch (e) {
+            console.error("Fehler beim Speichern des KI-Dialogs:", e);
+            ui.notifications.warn("Konnte Gespräch nicht speichern. Hast du die Berechtigung, Tagebücher zu erstellen?");
+        }
     }
 }
 window.GeminiDialogApp = GeminiDialogApp;

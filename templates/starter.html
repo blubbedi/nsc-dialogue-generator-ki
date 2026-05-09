@@ -1,15 +1,15 @@
 <div style="padding: 10px;">
     <div class="form-group">
-        <label>Spieler Charakter:</label>
+        <label>An wen soll der Dialog gesendet werden?</label>
         <select id="p-select" style="width: 100%; margin-bottom: 10px;">
-            <option value="">-- Wähle Charakter --</option>
+            <option value="">-- Wähle einen aktiven Spieler --</option>
             {{#each players}}
-                <option value="{{this.id}}">{{this.name}}</option>
+                <option value="{{this.userId}}|{{this.actorId}}">{{this.name}}</option>
             {{/each}}
         </select>
     </div>
     <div class="form-group">
-        <label>NSC (aus Ordner 'Dialog-Nsc'):</label>
+        <label>Welcher NSC antwortet? ('Dialog-Nsc'):</label>
         <select id="n-select" style="width: 100%; margin-bottom: 10px;">
             <option value="">-- Wähle NSC --</option>
             {{#each npcs}}
@@ -17,5 +17,5 @@
             {{/each}}
         </select>
     </div>
-    <button id="start-btn" style="width: 100%;"><i class="fas fa-comments"></i> Dialog Starten</button>
+    <button id="start-btn" style="width: 100%;"><i class="fas fa-paper-plane"></i> Dialog an Spieler senden</button>
 </div>

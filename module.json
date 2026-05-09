@@ -1,8 +1,8 @@
 {
   "id": "nsc-dialogue-generator-ki",
   "title": "NSC Dialogue Generator KI",
-  "description": "KI-gestützte NSC-Dialoge für D&D 5e (v12 optimiert).",
-  "version": "3.1.3",
+  "description": "KI-gestützte NSC-Dialoge für D&D 5e.",
+  "version": "3.1.4",
   "author": "blubbedi",
   "minimumCoreVersion": "12",
   "compatibleCoreVersion": "12",

@@ -1,16 +1,16 @@
 Hooks.once('init', () => {
     game.settings.register('nsc-dialogue-generator-ki', 'apiKey', {
         name: "Gemini API Key",
-        hint: "Trage hier deinen Google AI Studio Key ein. Hinweis: Aus technischen Gründen (Spieler-Zugriff) nicht als Passwort-Feld maskiert.",
+        hint: "Trage hier deinen Google AI Studio Key ein.",
         scope: "world",
         config: true,
         type: String,
-        default: ""
+        default: "" // ACHTUNG: Kein password:true, sonst stürzt Foundry beim Spieler ab!
     });
 
     game.settings.register('nsc-dialogue-generator-ki', 'loreJournalName', {
         name: "Name des Lore-Tagebuchs",
-        hint: "Der exakte Name des Tagebuchs (Journal), das die Kampagnen-Lore enthält.",
+        hint: "Der exakte Name des Journal Entries (Tagebuchs) in Foundry, in dem du die Kampagnen-Lore speicherst. Die KI liest dieses Tagebuch vor jedem Dialog aus.",
         scope: "world",
         config: true,
         type: String,

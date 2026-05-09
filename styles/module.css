@@ -1,26 +1,68 @@
 #gemini-history {
     background: rgba(0, 0, 0, 0.05);
+    border: 1px solid #a09f98;
     border-radius: 5px;
     padding: 10px;
 }
-.msg.user { 
+
+/* Flexbox-Wrapper für Bild + Sprechblase */
+.msg-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* Spieler-Nachrichten wandern nach rechts */
+.msg-wrapper.user {
+    justify-content: flex-end;
+}
+
+/* NSC-Nachrichten bleiben links */
+.msg-wrapper.model {
+    justify-content: flex-start;
+}
+
+/* Runder Avatar für die Charakterbilder */
+.chat-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #a09f98;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Sprechblasen-Design */
+.msg-content {
+    max-width: 75%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.msg-content.user { 
+    background: rgba(26, 35, 126, 0.1);
     color: #1a237e; 
     border-right: 3px solid #1a237e; 
-    padding-right: 5px; 
     text-align: right; 
 }
-.msg.model { 
+
+.msg-content.model { 
+    background: rgba(74, 14, 14, 0.1);
     color: #4a0e0e; 
     border-left: 3px solid #4a0e0e; 
-    padding-left: 5px; 
     text-align: left; 
 }
-.msg p {
+
+.msg-content p {
     white-space: pre-wrap;
     margin: 5px 0 0 0;
+    word-break: break-word;
 }
+
 .thinking { 
     font-style: italic; 
     color: #777; 
-    margin-top: 10px; 
 }

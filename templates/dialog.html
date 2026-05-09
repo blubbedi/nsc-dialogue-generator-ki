@@ -1,12 +1,36 @@
 <div class="gemini-chat" style="display:flex; flex-direction:column; height:100%;">
-    <div id="gemini-history" style="flex:1; overflow-y:auto; border:1px solid #a09f98; padding:10px; margin-bottom:10px; background: rgba(255,255,255,0.4);">
+    <div id="gemini-history" style="flex:1; overflow-y:auto; padding:10px; margin-bottom:10px; border-radius: 5px;">
+        
         {{#each history}}
-            <div class="msg {{role}}" style="margin-bottom:12px;">
-                <strong>{{#if (eq role "user")}}{{../playerName}}{{else}}{{../npcName}}{{/if}}:</strong>
-                <p>{{parts.[0].text}}</p>
+            <div class="msg-wrapper {{role}}">
+                
+                {{#if (eq role "user")}}
+                    <!-- Layout für den Spieler (Bild rechts) -->
+                    <div class="msg-content user">
+                        <strong>{{../playerName}}</strong>
+                        <p>{{parts.[0].text}}</p>
+                    </div>
+                    <img src="{{../playerImg}}" class="chat-avatar" title="{{../playerName}}">
+                {{else}}
+                    <!-- Layout für den NSC (Bild links) -->
+                    <img src="{{../npcImg}}" class="chat-avatar" title="{{../npcName}}">
+                    <div class="msg-content model">
+                        <strong>{{../npcName}}</strong>
+                        <p>{{parts.[0].text}}</p>
+                    </div>
+                {{/if}}
+
             </div>
         {{/each}}
-        {{#if isThinking}}<div class="thinking">Denkt nach...</div>{{/if}}
+
+        <!-- Thinking-Indikator des NSCs -->
+        {{#if isThinking}}
+            <div class="msg-wrapper model thinking-wrapper">
+                <img src="{{npcImg}}" class="chat-avatar" title="{{npcName}}">
+                <div class="thinking msg-content model">... denkte nach ...</div>
+            </div>
+        {{/if}}
+
     </div>
     <div style="display:flex; gap:5px;">
         <input type="text" id="chat-input" placeholder="Sprecht..." style="flex:1">

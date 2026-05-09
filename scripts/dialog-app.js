@@ -19,10 +19,13 @@ class GeminiDialogApp extends Application {
     }
 
     getData() {
+        // Wir übergeben jetzt zusätzlich die Profilbilder (img) an das HTML
         return { 
             history: this.history, 
             playerName: this.player.name, 
+            playerImg: this.player.img, 
             npcName: this.npc.name, 
+            npcImg: this.npc.img, 
             isThinking: this.isThinking 
         };
     }
@@ -40,8 +43,14 @@ class GeminiDialogApp extends Application {
         input.val("");
 
         this.history.push({ role: "user", parts: [{ text: text }] });
+        ChatMessage.create({ 
+            speaker: ChatMessage.getSpeaker({ actor: this.player }), 
+            content: text 
+        });
+
         this.isThinking = true;
         this.render(true);
+        this._scrollToBottom(); // Scrollt runter nach deiner Eingabe
 
         const npcData = {
             name: this.npc.name,
@@ -59,6 +68,21 @@ class GeminiDialogApp extends Application {
             });
         }
         this.render(true);
+        this._scrollToBottom(); // Scrollt runter nach der KI-Antwort
+    }
+
+    // Hilfsfunktion: Scrollt das Fenster automatisch nach ganz unten
+    _scrollToBottom() {
+        setTimeout(() => {
+            if (this.element && this.element.length) {
+                const historyContainer = this.element.find('#gemini-history')[0];
+                if (historyContainer) {
+                    historyContainer.scrollTop = historyContainer.scrollHeight;
+                }
+                // Hält den Fokus im Eingabefeld, damit du direkt weitertippen kannst
+                this.element.find('#chat-input').focus();
+            }
+        }, 50);
     }
 }
 window.GeminiDialogApp = GeminiDialogApp;

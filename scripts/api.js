@@ -6,7 +6,9 @@ class GeminiAPI {
             return null;
         }
 
-        const modelId = "gemini-1.5-flash-latest"; 
+        // FIX: Der Modell-Name wurde korrigiert. 
+        // Falls dieser auch fehlschlägt, ändere ihn auf "gemini-2.0-flash"
+        const modelId = "gemini-flash-latest"; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
         const journalName = game.settings.get('nsc-dialogue-generator-ki', 'loreJournalName');

@@ -1,21 +1,5 @@
-Hooks.once('init', () => {
-    // Socket Listener sofort registrieren, damit kein Signal verloren geht
-    game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
-        if (data.action === "openDialog" && data.userId === game.user.id) {
-            const playerActor = game.actors.get(data.playerId);
-            
-            if (playerActor) {
-                // Wir übergeben jetzt data.npc (die reinen Texte/Bilder) statt dem echten Foundry-Actor
-                new GeminiDialogApp(playerActor, data.npc).render(true);
-                ui.notifications.info(`Dialog mit ${data.npc.name} gestartet!`);
-            } else {
-                ui.notifications.error("Dein Charakter konnte nicht geladen werden.");
-            }
-        }
-    });
-});
-
 Hooks.once('ready', async () => {
+    // 1. Ordner-Erstellung (nur für GM)
     if (game.user.isGM) {
         if (!game.folders.find(f => f.name === "Dialog-Nsc" && f.type === "Actor")) {
             await Folder.create({ name: "Dialog-Nsc", type: "Actor" });
@@ -24,6 +8,21 @@ Hooks.once('ready', async () => {
             await Folder.create({ name: "Gespräche", type: "JournalEntry" });
         }
     }
+
+    // 2. Das Funkgerät (jetzt sicher im ready-Hook, feuert wenn alles geladen ist)
+    game.socket.on("module.nsc-dialogue-generator-ki", (data) => {
+        console.log("KI Dialog Modul: Signal empfangen", data);
+        if (data.action === "openDialog" && data.userId === game.user.id) {
+            const playerActor = game.actors.get(data.playerId);
+            
+            if (playerActor) {
+                new GeminiDialogApp(playerActor, data.npc).render(true);
+                ui.notifications.info(`Dialog mit ${data.npc.name} gestartet!`);
+            } else {
+                ui.notifications.error("Dein Charakter konnte nicht geladen werden.");
+            }
+        }
+    });
 });
 
 Hooks.on('getSceneControlButtons', (controls) => {
@@ -43,7 +42,8 @@ Hooks.on('getSceneControlButtons', (controls) => {
 
 class GeminiStarterApp extends Application {
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
+        // V12 FIX: foundry.utils.mergeObject
+        return foundry.utils.mergeObject(super.defaultOptions, {
             template: "modules/nsc-dialogue-generator-ki/templates/starter.html",
             title: "KI Dialog Zuweisung",
             width: 320
@@ -81,7 +81,6 @@ class GeminiStarterApp extends Application {
                 const playerActor = game.actors.get(actorId);
                 const npcActor = game.actors.get(nId);
                 
-                // Wir schnüren das Paket, damit der Spieler keine Berechtigungen braucht
                 const npcDataPayload = {
                     id: npcActor.id,
                     name: npcActor.name,
@@ -96,7 +95,7 @@ class GeminiStarterApp extends Application {
                         action: "openDialog",
                         userId: userId,
                         playerId: actorId,
-                        npc: npcDataPayload // Hier fliegt das Paket zum Spieler
+                        npc: npcDataPayload 
                     });
                     ui.notifications.info("Dialog-Fenster wurde erfolgreich an den Spieler gesendet.");
                 }

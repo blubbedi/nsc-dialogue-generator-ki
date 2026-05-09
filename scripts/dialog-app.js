@@ -2,13 +2,14 @@ class GeminiDialogApp extends Application {
     constructor(player, npcData) {
         super();
         this.player = player;
-        this.npc = npcData; // Dies ist jetzt unser sauberes Daten-Paket
+        this.npc = npcData; 
         this.history = [];
         this.isThinking = false;
     }
 
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
+        // V12 FIX: foundry.utils.mergeObject
+        return foundry.utils.mergeObject(super.defaultOptions, {
             id: "gemini-chat-window",
             template: "modules/nsc-dialogue-generator-ki/templates/dialog.html",
             width: 450,
@@ -17,9 +18,8 @@ class GeminiDialogApp extends Application {
         });
     }
 
-    // Offizielle Foundry-Methode für dynamische Fenstertitel
     get title() {
-        return `Gespräch mit ${this.npc.name}`;
+        return `Gespräch mit ${this.npc?.name || "NSC"}`;
     }
 
     getData() {
@@ -123,10 +123,10 @@ class GeminiDialogApp extends Application {
                 }
             });
 
-            ui.notifications.info("Gespräch wurde in deinen Tagebüchern unter 'Gespräche' gespeichert!");
+            ui.notifications.info("Gespräch wurde in deinen Tagebüchern gespeichert!");
         } catch (e) {
             console.error("Fehler beim Speichern des KI-Dialogs:", e);
-            ui.notifications.warn("Konnte Gespräch nicht speichern. Hast du die Berechtigung, Tagebücher zu erstellen?");
+            ui.notifications.warn("Konnte Gespräch nicht speichern.");
         }
     }
 }

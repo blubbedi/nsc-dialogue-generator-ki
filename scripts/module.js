@@ -94,7 +94,7 @@ class GeminiStarterApp extends Application {
 
             if (!playerActor || !npcActor) return;
 
-            // FIX: Biografie extrem aggressiv säubern, damit das Netzwerk nicht blockiert
+            // FIX: Biografie aggressiv säubern, da HTML-Fragmente den Socket zum Absturz bringen können
             const rawBio = npcActor.system?.details?.biography?.value || "";
             const cleanBio = String(rawBio).replace(/<[^>]*>?/gm, '').trim() || "Ein Bewohner.";
 
